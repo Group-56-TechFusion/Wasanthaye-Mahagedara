@@ -1,0 +1,16 @@
+# Dependencies
+/vendor/
+composer.phar
+
+# Secrets and local config
+.env
+config/database.php
+
+# Logs
+/storage/logs/*
+!/storage/logs/.gitkeep
+
+# Editor and OS files
+.vscode/
+.idea/
+Thumbs.db
