@@ -11,6 +11,7 @@ $routes = [
     ['GET',  '/branches',  'ModuleController@branches',     'branches'],
     ['GET',  '/customers', 'ModuleController@customers',    'customers'],
     ['GET',  '/calendar',  'ModuleController@calendar',     'calendar'],
+    ['POST', '/calendar/weddings', 'ModuleController@createWedding', 'calendar'],
     ['GET',  '/billing',   'ModuleController@billing',      'billing'],
     ['GET',  '/inventory', 'ModuleController@inventory',    'inventory'],
     ['GET',  '/reports',   'ModuleController@reports',      'reports'],
