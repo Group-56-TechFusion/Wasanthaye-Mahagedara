@@ -8,9 +8,11 @@ $routes = [
     ['GET',  '/dashboard', 'DashboardController@index',     'dashboard'],
 
     ['GET',  '/users',     'ModuleController@users',        'users'],
+    ['POST', '/users',     'ModuleController@createUser',   'users'],
     ['GET',  '/branches',  'ModuleController@branches',     'branches'],
     ['GET',  '/customers', 'ModuleController@customers',    'customers'],
     ['GET',  '/calendar',  'ModuleController@calendar',     'calendar'],
+    ['POST', '/calendar/weddings', 'ModuleController@createWedding', 'calendar'],
     ['GET',  '/billing',   'ModuleController@billing',      'billing'],
     ['GET',  '/reports',   'ModuleController@reports',      'reports'],
 
