@@ -85,6 +85,7 @@ body { margin: 0; font-family: Arial, sans-serif; background: #f4f6fa; color: #1
 .users-table-card .section-heading { margin-bottom: 14px; }
 .users-empty { text-align: center; color: #718096 !important; }
 
+
 @media (max-width: 900px) {
   .wedding-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .calendar-day { min-height: 70px; padding: 5px; }
@@ -100,6 +101,7 @@ body { margin: 0; font-family: Arial, sans-serif; background: #f4f6fa; color: #1
   .calendar-day { min-height: 58px; padding: 4px; }
   .wedding-chip { font-size: 8px; }
   .wedding-form { grid-template-columns: 1fr; }
+
   .user-form { grid-template-columns: 1fr; }
 }
 .page-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
@@ -191,4 +193,5 @@ body { margin: 0; font-family: Arial, sans-serif; background: #f4f6fa; color: #1
 
 @media (max-width: 700px) {
     .form { grid-template-columns: 1fr; }
+
 }
