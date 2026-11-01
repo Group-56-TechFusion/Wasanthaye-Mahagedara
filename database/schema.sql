@@ -4,7 +4,7 @@ CREATE TABLE branches (
 );
 
 INSERT INTO branches (name) VALUES
-('Nittambuwa'), ('Kadawatha'), ('Maluba'), ('Kurunegala');
+('Nittambuwa'), ('Kadawatha'), ('Malabe'), ('Kurunegala');
 
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,

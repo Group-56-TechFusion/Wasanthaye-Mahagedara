@@ -1,7 +1,7 @@
 <?php
-/** Add New Bill (when $bill is null) and Edit Bill share this form. */
+
 $editing = $bill !== null;
-$lockHeader = $editing && !$isAdmin;           // managers cannot change bill number / booking date
+$lockHeader = $editing && !$isAdmin;           
 $v = fn(string $k, $def = '') => e((string) ($d[$k] ?? $def));
 $checked = fn(string $k) => !empty($d[$k]) ? 'checked' : '';
 $members = $d['members_form'] ?? [];

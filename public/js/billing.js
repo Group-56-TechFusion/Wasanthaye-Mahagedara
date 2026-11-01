@@ -1,4 +1,4 @@
-/* Billing add / edit form behaviour */
+
 (function () {
   var form = document.getElementById('bill-form');
   if (!form) return;
@@ -7,7 +7,7 @@
   var val = function (name) { var el = form.elements[name]; return el ? parseFloat(el.value) || 0 : 0; };
   var fmt = function (n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
 
-  // ---------------------------------------------------------------- totals
+  
   function installmentsTotal() {
     return [2, 3, 4].reduce(function (sum, n) { return sum + val('inst[' + n + '][amount]'); }, 0);
   }
@@ -31,7 +31,7 @@
     .forEach(function (n) { if (form.elements[n]) form.elements[n].addEventListener('input', recalc); });
   if ($('#full_payment')) $('#full_payment').addEventListener('change', recalc);
 
-  // ------------------------------------------------- item pickers (jackets)
+  
   document.querySelectorAll('.picker').forEach(function (picker) {
     var input = $('.picker-input', picker), hidden = $('input[type=hidden]', picker), list = $('.picker-list', picker);
     var timer = null;
@@ -75,7 +75,7 @@
     }
 
     input.addEventListener('input', function () {
-      hidden.value = '';                       // typing again clears the previous pick
+      hidden.value = '';                       
       clearTimeout(timer);
       timer = setTimeout(load, 250);
     });
@@ -83,7 +83,7 @@
     input.addEventListener('blur', function () { setTimeout(function () { list.hidden = true; }, 150); });
   });
 
-  // A date or bestman-count change can free / lock items: ask the user to pick again.
+  
   ['wedding_date', 'bestmen_count'].forEach(function (n) {
     form.elements[n].addEventListener('change', function () {
       document.querySelectorAll('.picker').forEach(function (p) {
@@ -92,7 +92,7 @@
     });
   });
 
-  // ------------------------------------------------- party measurement rows
+  
   var body = $('#members');
   var saved = window.BILL_MEMBERS || {};
   var fields = ['name', 'cap', 'jacket', 'trouser', 'shoe'];
@@ -137,7 +137,7 @@
   form.elements.bestmen_count.addEventListener('input', renderMembers);
   form.elements.pageboys_count.addEventListener('input', renderMembers);
 
-  // ------------------------------------------------- find existing customer
+  
   var searchBtn = $('#customer-search-btn');
   if (searchBtn) {
     var sInput = $('#customer-search'), results = $('#customer-results');

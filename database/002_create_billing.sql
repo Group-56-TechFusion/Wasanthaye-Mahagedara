@@ -1,4 +1,4 @@
--- Billing module tables. Run once in phpMyAdmin (database app_db).
+
 
 CREATE TABLE IF NOT EXISTS bills (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -52,7 +52,6 @@ CREATE TABLE IF NOT EXISTS bills (
   FOREIGN KEY (bestman_jacket_id) REFERENCES jackets(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- seq 1 = advance, 2..4 = installments. branch_id = showroom the payment was taken at.
 CREATE TABLE IF NOT EXISTS bill_payments (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   bill_id INT UNSIGNED NOT NULL,

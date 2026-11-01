@@ -24,7 +24,8 @@ $routes = [
     ['POST', '/billing/restore',   'BillingController@restore',   'billing'],
     ['GET',  '/billing/items',     'BillingController@items',     'billing'],
     ['GET',  '/billing/customers', 'BillingController@customers', 'billing'],
-    ['GET',  '/reports',   'ModuleController@reports',      'reports'],
+    ['GET',  '/reports',        'ReportController@index',  'reports'],
+    ['GET',  '/reports/export', 'ReportController@export', 'reports'],
 
     ['GET',  '/inventory',                 'JacketController@index',     'inventory'],
     ['GET',  '/inventory/jackets/create',  'JacketController@create',    'inventory'],

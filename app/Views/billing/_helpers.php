@@ -1,5 +1,5 @@
 <?php
-// Small view helpers shared by the billing pages.
+
 
 if (!function_exists('bill_money')) {
     function bill_money($v): string
@@ -9,7 +9,7 @@ if (!function_exists('bill_money')) {
 }
 
 if (!function_exists('bill_status')) {
-    /** @return array{0:string,1:string} [css class, label] */
+    
     function bill_status(array $b): array
     {
         if (!empty($b['deleted_at']))  return ['cancelled', 'CANCELLED'];
@@ -21,7 +21,7 @@ if (!function_exists('bill_status')) {
 }
 
 if (!function_exists('bill_action_form')) {
-    /** A small POST button (postpone / delete / restore) with CSRF and a confirm prompt. */
+    
     function bill_action_form(string $action, int $id, string $label, string $class, string $confirm): string
     {
         return '<form method="POST" action="' . e($action) . '" class="inline-form" onsubmit="return confirm(' . e(json_encode($confirm)) . ')">'

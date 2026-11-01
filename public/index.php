@@ -18,7 +18,7 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
-// Session timeout after 30 minutes of inactivity
+
 if (!empty($_SESSION['user'])) {
     if (time() - ($_SESSION['last_activity'] ?? time()) > 1800) {
         session_unset();

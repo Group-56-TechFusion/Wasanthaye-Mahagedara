@@ -19,7 +19,7 @@ class Bill
         'package_price', 'transport', 'discount', 'total', 'is_mobile_shop',
     ];
 
-    // ---------------------------------------------------------------- reading
+
 
     public function branches(): array
     {
@@ -33,7 +33,7 @@ class Bill
         return (string) $st->fetchColumn();
     }
 
-    /** Summary cards. Cancelled bills and postponed bills keep only the money already paid in the sale figure. */
+    
     public function stats(?int $scope): array
     {
         $sql = "SELECT
@@ -127,6 +127,28 @@ class Bill
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    
+    public function weddingsBetween(DateTimeImmutable $from, DateTimeImmutable $to, ?int $scope = null): array
+    {
+        $sql = "SELECT b.id, b.bill_number, b.customer_name, b.wedding_date, b.wedding_hotel,
+                       b.dressing_location, b.bestmen_count, b.pageboys_count, b.total,
+                       br.name AS branch_name, COALESCE(p.paid, 0) AS paid,
+                       (b.total - COALESCE(p.paid, 0)) AS balance
+                FROM bills b
+                JOIN branches br ON br.id = b.branch_id " . self::PAID_JOIN . "
+                WHERE b.deleted_at IS NULL AND b.is_postponed = 0
+                  AND b.wedding_date BETWEEN :from AND :to"
+             . ($scope ? ' AND b.branch_id = :scope' : '') . "
+                ORDER BY b.wedding_date, b.id";
+        $args = [':from' => $from->format('Y-m-d'), ':to' => $to->format('Y-m-d')];
+        if ($scope) {
+            $args[':scope'] = $scope;
+        }
+        $st = $this->db()->prepare($sql);
+        $st->execute($args);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function find(int $id): ?array
     {
         $sql = "SELECT b.*, br.name AS branch_name, COALESCE(p.paid, 0) AS paid,
@@ -145,7 +167,7 @@ class Bill
         return $st->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    /** Payments keyed by seq (1 = advance, 2..4 = installments). */
+    
     public function payments(int $billId): array
     {
         $st = $this->db()->prepare(
@@ -168,7 +190,7 @@ class Bill
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** Earlier customers matching a name or phone (for "Find Existing Customer"). */
+    
     public function findCustomers(string $q, ?int $scope): array
     {
         $like = '%' . addcslashes($q, '%_\\') . '%';
@@ -187,14 +209,7 @@ class Bill
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // ------------------------------------------------------------ availability
 
-    /**
-     * Jackets that can be picked for a bill.
-     * A jacket is locked only on the wedding date itself: stock minus what other
-     * live bills (not deleted, not postponed) already use on that same date.
-     * Options: category, branch_name, need, date (Y-m-d|null), exclude (bill id), q, id (optional).
-     */
     public function availableJackets(array $o): array
     {
         $args = [
@@ -244,7 +259,7 @@ class Bill
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // ----------------------------------------------------------------- writing
+   
 
     public function create(array $d, int $branchId, ?int $userId): int
     {
@@ -287,7 +302,7 @@ class Bill
                 $sets[] = "$c = ?";
                 $vals[] = $d[$c];
             }
-            // Giving a postponed bill a new wedding date reactivates it.
+            
             if ($existing['is_postponed'] && $d['wedding_date']) {
                 $sets[] = 'is_postponed = 0';
                 $sets[] = 'postponed_from = NULL';
@@ -308,7 +323,7 @@ class Bill
         }
     }
 
-    /** Postpone: highlight the bill, clear the wedding date (kept in postponed_from), release the items. */
+    
     public function postpone(int $id): bool
     {
         $st = $this->db()->prepare(
@@ -319,7 +334,7 @@ class Bill
         return $st->rowCount() > 0;
     }
 
-    /** Move to the recycle bin. Payments stay, so the advance still counts in every total. */
+    
     public function softDelete(int $id, ?int $userId): bool
     {
         $st = $this->db()->prepare('UPDATE bills SET deleted_at = NOW(), deleted_by = :u WHERE id = :id AND deleted_at IS NULL');
@@ -334,7 +349,7 @@ class Bill
         return $st->rowCount() > 0;
     }
 
-    // ----------------------------------------------------------------- helpers
+
 
     private function nextNumber(): string
     {
@@ -342,7 +357,7 @@ class Bill
         return (string) $n;
     }
 
-    /** Desired payment rows per seq, null = no row. */
+  
     private function wanted(array $d, string $advanceDate, array $have): array
     {
         $want = [
@@ -357,10 +372,7 @@ class Bill
         return $want;
     }
 
-    /**
-     * New or changed rows are stamped with the branch of the logged-in user;
-     * untouched rows keep the branch they were originally recorded at.
-     */
+    
     private function syncPayments(int $billId, array $want, array $have, int $branchId, ?int $userId): void
     {
         $pdo = $this->db();

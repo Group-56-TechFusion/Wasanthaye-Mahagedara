@@ -1,5 +1,5 @@
 <?php
-// Creates the test accounts. Safe to run more than once.
+
 try {
     $db = require __DIR__ . '/../config/database.php';
 
@@ -9,7 +9,7 @@ try {
     );
 
     $users = [
-        // username,  role,             branch_id (1 = Nittambuwa, 2 = Kadawatha)
+        
         ['admin1',   'admin',          null],
         ['manager1', 'branch_manager', 1],
         ['manager2', 'branch_manager', 2],

@@ -16,7 +16,7 @@ class BillingController
         }
     }
 
-    // ------------------------------------------------------------------ list
+    
 
     public function index(): void
     {
@@ -42,7 +42,7 @@ class BillingController
         ], 'Billing & Invoices');
     }
 
-    // ------------------------------------------------------------- add / view
+    
 
     public function create(): void
     {
@@ -85,7 +85,7 @@ class BillingController
         ], 'Bill Details');
     }
 
-    // ------------------------------------------------------------------- edit
+    
 
     public function edit(): void
     {
@@ -114,7 +114,7 @@ class BillingController
         }
         if (!$errors) {
             try {
-                $payBranch = Auth::branchId() ?? $branchId; // admin has no branch: use the bill's showroom
+                $payBranch = Auth::branchId() ?? $branchId; 
                 $this->bills->update($id, $d, $bill, $this->bills->payments($id), $payBranch, (int) (Auth::user()['id'] ?? 0) ?: null);
                 $_SESSION['success'] = 'Bill updated.';
                 Page::redirect('/billing/view?id=' . $id);
@@ -125,7 +125,7 @@ class BillingController
         $this->form($d, $errors, $bill);
     }
 
-    // --------------------------------------------------- postpone / delete / restore
+    
 
     public function postpone(): void
     {
@@ -163,14 +163,14 @@ class BillingController
         Page::redirect('/billing');
     }
 
-    // ------------------------------------------------------------ item search
+    
 
     public function items(): void
     {
         $category = ($_GET['category'] ?? '') === 'bestman' ? 'bestman' : 'groom';
         $exclude  = (int) ($_GET['exclude'] ?? 0);
         $bill     = $exclude ? $this->bills->find($exclude) : null;
-        // Editing an existing bill: use that bill's showroom. New bill: the manager's own showroom.
+        
         $branchId = $bill ? (int) $bill['branch_id'] : (int) Auth::branchId();
         if (!$bill) {
             $exclude = 0;
@@ -199,15 +199,15 @@ class BillingController
         exit;
     }
 
-    // ---------------------------------------------------------------- helpers
+    
 
-    /** Lists, totals and the recycle bin cover every showroom. */
+    
     private function scope(): ?int
     {
         return null;
     }
 
-    /** Customer look-up while adding a bill stays limited to the manager's own showroom. */
+    
     private function ownScope(): ?int
     {
         return Auth::isAdmin() ? null : Auth::branchId();
@@ -231,7 +231,7 @@ class BillingController
         return $bill;
     }
 
-    /** @return string|null|false  Y-m-d, null when empty, false when invalid */
+    
     private function parseDate(string $raw)
     {
         $raw = trim($raw);
@@ -300,7 +300,7 @@ class BillingController
         return $d;
     }
 
-    /** Re-check on save that the chosen jackets are still free on that wedding date. */
+    
     private function checkItems(array $d, int $branchId, int $excludeBillId): array
     {
         $errors = [];
@@ -324,16 +324,16 @@ class BillingController
         return $errors;
     }
 
-    /** Read and validate the posted form. @return array{0: array, 1: string[]} */
+    
     private function collect(?array $bill): array
     {
         $errors = [];
         $text   = fn(string $k, int $max = 255): string => mb_substr(trim((string) ($_POST[$k] ?? '')), 0, $max);
         $money  = fn($v): float => max(0.0, round((float) $v, 2));
         $count  = fn(string $k): int => max(0, min(self::MAX_PARTY, (int) ($_POST[$k] ?? 0)));
-        $locked = $bill !== null && !Auth::isAdmin(); // managers cannot change bill number / booking date
+        $locked = $bill !== null && !Auth::isAdmin(); 
 
-        // Header
+        
         $number = $locked ? $bill['bill_number'] : $text('bill_number', 30);
         if ($bill && $number === '') {
             $number = $bill['bill_number'];
@@ -342,7 +342,7 @@ class BillingController
             $errors[] = 'The bill number may only contain letters, numbers and dashes.';
         }
         $booking = $locked ? $bill['booking_date'] : $this->parseDate((string) ($_POST['booking_date'] ?? ''));
-        if ($booking === null) {                        // left empty: today for a new bill, unchanged for an edit
+        if ($booking === null) {                        
             $booking = $bill['booking_date'] ?? date('Y-m-d');
         }
         if (!$booking) {
@@ -350,7 +350,7 @@ class BillingController
             $booking = $bill['booking_date'] ?? date('Y-m-d');
         }
 
-        // Customer
+        
         $name   = $text('customer_name', 150);
         $phone1 = $text('phone1', 25);
         $phone2 = $text('phone2', 25);
@@ -368,20 +368,20 @@ class BillingController
             $errors[] = 'Enter a valid email address or leave it empty.';
         }
 
-        // Wedding (date optional)
+        
         $wedding = $this->parseDate((string) ($_POST['wedding_date'] ?? ''));
         if ($wedding === false) {
             $errors[] = 'The wedding date is not valid.';
             $wedding = null;
         }
 
-        // Items
+        
         $groomId   = (int) ($_POST['groom_jacket_id'] ?? 0) ?: null;
         $bestmanId = (int) ($_POST['bestman_jacket_id'] ?? 0) ?: null;
         $bestmen   = $count('bestmen_count');
         $pageboys  = $count('pageboys_count');
 
-        // Money
+        
         $package   = $money($_POST['package_price'] ?? 0);
         $transport = $money($_POST['transport'] ?? 0);
         $discount  = $money($_POST['discount'] ?? 0);
@@ -393,7 +393,7 @@ class BillingController
         $advance = $money($_POST['advance_amount'] ?? 0);
         $method  = isset(self::METHODS[(string) ($_POST['advance_method'] ?? '')]) ? $_POST['advance_method'] : 'cash';
 
-        // Installments 2..4 (edit page only)
+        
         $inst = [];
         $paid = $advance;
         if ($bill) {
@@ -414,7 +414,7 @@ class BillingController
             $errors[] = 'Total payments (Rs. ' . number_format($paid, 2) . ') are more than the bill total (Rs. ' . number_format($total, 2) . ').';
         }
 
-        // Party measurements: only rows that fit the counts above are kept
+        
         $members = [];
         $shown   = [];
         foreach ((array) ($_POST['members'] ?? []) as $key => $row) {
@@ -454,7 +454,7 @@ class BillingController
             'installments' => $inst,
             'members' => $members,
         ];
-        // Keep the typed measurements when the form is shown again after an error.
+        
         $d['members_form'] = $shown;
         return [$d, $errors];
     }

@@ -196,12 +196,8 @@ body { margin: 0; font-family: Arial, sans-serif; background: #f4f6fa; color: #1
 
 }
 
-/* ==========================================================
-   Billing module
-   (merged from billing.css; rules that clashed with the base
-   styles above are scoped to .bill-page with zero added specificity)
-   ========================================================== */
-/* Billing module styles (loaded by the billing views, on top of style.css) */
+
+
 .bill-page { padding: 8px 4px 40px; color: #1a2238; }
 .bill-page h1 { margin: 0; font-size: 26px; }
 .bill-page h2 { margin: 0 0 6px; font-size: 18px; }
@@ -286,7 +282,7 @@ body { margin: 0; font-family: Arial, sans-serif; background: #f4f6fa; color: #1
 .picker-list li.none { color: #6b7280; cursor: default; }
 .picker-list li small { color: #6b7280; }
 
-/* bill view page */
+
 .invoice .inv-head { display: flex; justify-content: space-between; border-bottom: 2px solid #f59e0b; padding-bottom: 12px; margin-bottom: 12px; }
 .invoice .inv-right { text-align: right; }
 .invoice .branch { margin-top: 8px; font-size: 18px; }
@@ -315,4 +311,38 @@ body { margin: 0; font-family: Arial, sans-serif; background: #f4f6fa; color: #1
   .sidebar, .topbar, .no-print { display: none !important; }
   .content { margin: 0 !important; padding: 0 !important; }
   .form-card { box-shadow: none; }
+}
+
+/* ===================== Reports module ===================== */
+.report-page .rep-presets { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+.rep-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.rep-card { display: block; padding: 14px 16px; border-radius: 12px; border-left: 4px solid var(--c, #6366f1); background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.06); color: inherit; text-decoration: none; transition: transform .15s, box-shadow .15s; }
+.rep-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(31,45,70,.12); }
+.rep-card.is-active { box-shadow: 0 0 0 2px #f59e0b, 0 4px 12px rgba(245,158,11,.18); }
+.rep-card span { display: block; font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #6b7280; }
+.rep-card strong { display: block; margin: 7px 0 4px; font-size: 21px; color: var(--c, #1a2238); }
+.rep-card small { display: block; font-size: 11px; letter-spacing: .02em; text-transform: uppercase; color: #8a94a6; }
+.rep-charts { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
+.report-page .panel h2 { margin: 0 0 2px; }
+.report-page .panel > .muted.small { margin: 0 0 12px; }
+.chart-box { position: relative; height: 300px; }
+.chart-box.tall { height: 340px; }
+.report-page .bill-table tfoot td { padding: 11px 8px; border-top: 2px solid #e5e7eb; background: #f7f9fc; font-weight: 700; }
+.report-page .badge-status.paid { background: #dcfce7; color: #166534; }
+.report-page #detail { scroll-margin-top: 16px; }
+
+@media (max-width: 1000px) {
+  .rep-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rep-charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .rep-stats { grid-template-columns: 1fr; }
+  .report-page .page-head { flex-direction: column; }
+}
+@media print {
+  .report-page .page-head { margin-top: 0; }
+  .rep-card, .report-page .panel { break-inside: avoid; box-shadow: none; }
+  .report-page .panel { border: 1px solid #e5e7eb; }
+  .rep-card.is-active { box-shadow: none; }
+  .chart-box { height: 260px; }
 }
