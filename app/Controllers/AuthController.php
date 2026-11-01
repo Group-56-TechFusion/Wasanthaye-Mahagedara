@@ -24,7 +24,7 @@ class AuthController extends Controller
         $db   = require BASE_PATH . '/config/database.php';
         $user = User::findByUsername($db, $username);
 
-        // one generic message for every failure, so nothing is revealed
+        
         if (!$user || !$user['is_active'] || !password_verify($password, $user['password_hash'])) {
             $_SESSION['error'] = 'Invalid username or password.';
             $this->redirect('/login');

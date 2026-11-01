@@ -15,63 +15,18 @@ foreach ($calendarWeddings as $wedding) {
 $dateLink = static function (DateTimeImmutable $date): string {
     return '/calendar?date=' . $date->format('Y-m-d');
 };
+
+$billStatus = static function (array $wedding): string {
+    return (float) $wedding['balance'] <= 0 ? 'Paid' : 'Pending';
+};
 ?>
 <section class="calendar-page">
   <div class="calendar-heading">
     <div>
       <h1>Wedding Calendar</h1>
-      <p>Schedule and keep track of weddings across your showrooms.</p>
+      <p>Weddings are added automatically from the wedding date on each bill. Click a date to see its details.</p>
     </div>
-    <a class="button button-primary" href="/calendar?add=1&amp;date=<?= e($selectedDate->format('Y-m-d')) ?>#add-wedding">+ Add Wedding</a>
   </div>
-
-  <?php if ($success): ?><div class="notice notice-success"><?= e($success) ?></div><?php endif; ?>
-  <?php if ($error): ?><div class="notice notice-error"><?= e($error) ?></div><?php endif; ?>
-
-  <details class="add-wedding-panel" id="add-wedding" <?= !empty($_GET['add']) ? 'open' : '' ?>>
-    <summary class="add-wedding-summary">Add a wedding</summary>
-    <form class="wedding-form" method="POST" action="/calendar/weddings">
-      <input type="hidden" name="csrf" value="<?= e(Auth::csrfToken()) ?>">
-      <label>Groom name
-        <input type="text" name="groom_name" maxlength="100" required>
-      </label>
-      <label>Bride name
-        <input type="text" name="bride_name" maxlength="100" required>
-      </label>
-      <label>Wedding date
-        <input type="date" name="wedding_date" value="<?= e($selectedDate->format('Y-m-d')) ?>" required>
-      </label>
-      <?php if (Auth::isAdmin()): ?>
-        <label>Showroom
-          <select name="branch_id" required>
-            <option value="">Select a showroom</option>
-            <?php foreach ($branches as $branch): ?>
-              <option value="<?= e($branch['id']) ?>"><?= e($branch['name']) ?></option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-      <?php else: ?>
-        <label>Showroom
-          <input type="text" value="<?= e(Auth::user()['branch_name'] ?? '') ?>" disabled>
-        </label>
-      <?php endif; ?>
-      <label>Location
-        <input type="text" name="location" maxlength="150">
-      </label>
-      <label>Hotel
-        <input type="text" name="hotel" maxlength="150">
-      </label>
-      <label>Estimated amount (Rs.)
-        <input type="number" name="estimated_amount" min="0" step="0.01">
-      </label>
-      <label>Maid boys
-        <input type="number" name="maid_boys" min="0" max="1000" step="1" value="0">
-      </label>
-      <div class="form-actions">
-        <button class="button button-primary" type="submit">Save Wedding</button>
-      </div>
-    </form>
-  </details>
 
   <section class="calendar-card" aria-label="Wedding calendar">
     <div class="calendar-toolbar">
@@ -99,10 +54,12 @@ $dateLink = static function (DateTimeImmutable $date): string {
               $classes[] = 'calendar-day-selected';
           }
         ?>
-        <a class="<?= e(implode(' ', $classes)) ?>" href="<?= e($dateLink($day)) ?>" aria-label="<?= e($day->format('F j, Y')) ?>, <?= count($dayWeddings) ?> weddings">
+        <a class="<?= e(implode(' ', $classes)) ?>" href="<?= e($dateLink($day)) ?>"
+           data-date="<?= e($key) ?>" data-label="<?= e($day->format('l, F j, Y')) ?>"
+           aria-label="<?= e($day->format('F j, Y')) ?>, <?= count($dayWeddings) ?> weddings">
           <span class="calendar-day-number"><?= e($day->format('j')) ?></span>
           <?php foreach (array_slice($dayWeddings, 0, 2) as $wedding): ?>
-            <span class="wedding-chip"><?= e($wedding['bride_name']) ?> &amp; <?= e($wedding['groom_name']) ?></span>
+            <span class="wedding-chip"><?= e($wedding['customer_name']) ?> (#<?= e($wedding['bill_number']) ?>)</span>
           <?php endforeach; ?>
           <?php if (count($dayWeddings) > 2): ?>
             <span class="wedding-more">+<?= count($dayWeddings) - 2 ?> more</span>
@@ -112,33 +69,41 @@ $dateLink = static function (DateTimeImmutable $date): string {
     </div>
   </section>
 
-  <section class="wedding-list-card">
-    <div class="section-heading">
-      <div>
-        <h2>Weddings on <?= e($selectedDate->format('F j, Y')) ?></h2>
-        <p><?= count($selectedWeddings) ?> wedding<?= count($selectedWeddings) === 1 ? '' : 's' ?> scheduled for this date</p>
+  <?php /* One hidden block of details per day that has weddings; the pop-up copies it in when a date is clicked. */ ?>
+  <?php foreach ($weddingsByDate as $date => $dayWeddings): ?>
+    <template id="day-<?= e($date) ?>">
+      <p class="day-dialog-count"><?= count($dayWeddings) ?> wedding<?= count($dayWeddings) === 1 ? '' : 's' ?> scheduled</p>
+      <?php foreach ($dayWeddings as $wedding): ?>
+        <article class="day-dialog-wedding">
+          <div class="day-dialog-title">
+            <strong><?= e($wedding['customer_name']) ?></strong>
+            <span class="status-pill"><?= e($billStatus($wedding)) ?></span>
+          </div>
+          <dl>
+            <dt>Bill</dt><dd><a href="/billing/view?id=<?= e($wedding['id']) ?>">#<?= e($wedding['bill_number']) ?></a></dd>
+            <dt>Showroom</dt><dd><?= e($wedding['branch_name']) ?></dd>
+            <dt>Dressing location</dt><dd><?= e($wedding['dressing_location'] ?: '-') ?></dd>
+            <dt>Hotel</dt><dd><?= e($wedding['wedding_hotel'] ?: '-') ?></dd>
+            <dt>Party</dt><dd><?= e($wedding['bestmen_count']) ?> bestmen, <?= e($wedding['pageboys_count']) ?> pageboys</dd>
+            <dt>Total</dt><dd>Rs. <?= e(number_format((float) $wedding['total'], 2)) ?></dd>
+            <dt>Paid</dt><dd>Rs. <?= e(number_format((float) $wedding['paid'], 2)) ?></dd>
+            <dt>Balance</dt><dd>Rs. <?= e(number_format((float) $wedding['balance'], 2)) ?></dd>
+          </dl>
+          <a class="button button-muted" href="/billing/view?id=<?= e($wedding['id']) ?>">Open bill</a>
+        </article>
+      <?php endforeach; ?>
+    </template>
+  <?php endforeach; ?>
+
+  <dialog id="day-dialog" class="day-dialog" aria-labelledby="day-dialog-title">
+    <div class="day-dialog-inner">
+      <div class="day-dialog-header">
+        <h2 id="day-dialog-title"></h2>
+        <button type="button" class="day-dialog-close" id="day-dialog-close" aria-label="Close">&times;</button>
       </div>
+      <div id="day-dialog-body"></div>
     </div>
-    <?php if ($selectedWeddings): ?>
-      <div class="selected-weddings">
-        <?php foreach ($selectedWeddings as $wedding): ?>
-          <article class="selected-wedding">
-            <div class="selected-couple">
-              <strong><?= e($wedding['bride_name']) ?> &amp; <?= e($wedding['groom_name']) ?></strong>
-              <span><?= e($wedding['branch_name']) ?> showroom</span>
-            </div>
-            <div class="selected-details">
-              <?php if ($wedding['location'] !== ''): ?><span><?= e($wedding['location']) ?></span><?php endif; ?>
-              <?php if ($wedding['hotel'] !== ''): ?><span><?= e($wedding['hotel']) ?></span><?php endif; ?>
-              <?php if ($wedding['estimated_amount'] !== null): ?><span>Rs. <?= e(number_format((float) $wedding['estimated_amount'], 2)) ?></span><?php endif; ?>
-            </div>
-          </article>
-        <?php endforeach; ?>
-      </div>
-    <?php else: ?>
-      <p class="empty-state">No weddings scheduled for this date.</p>
-    <?php endif; ?>
-  </section>
+  </dialog>
 
   <section class="wedding-list-card">
     <div class="section-heading">
@@ -153,26 +118,30 @@ $dateLink = static function (DateTimeImmutable $date): string {
           <thead>
             <tr>
               <th>Date</th>
-              <th>Couple</th>
+              <th>Bill</th>
+              <th>Customer</th>
               <th>Showroom</th>
-              <th>Location</th>
+              <th>Dressing location</th>
               <th>Hotel</th>
-              <th>Estimate</th>
-              <th>Maid boys</th>
+              <th>Total</th>
+              <th>Bestmen</th>
+              <th>Pageboys</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($upcomingWeddings as $wedding): ?>
               <tr>
-                <td><?= e((new DateTimeImmutable($wedding['wedding_date']))->format('Y-m-d')) ?></td>
-                <td><?= e($wedding['bride_name']) ?> &amp; <?= e($wedding['groom_name']) ?></td>
+                <td><?= e($wedding['wedding_date']) ?></td>
+                <td><a href="/billing/view?id=<?= e($wedding['id']) ?>">#<?= e($wedding['bill_number']) ?></a></td>
+                <td><?= e($wedding['customer_name']) ?></td>
                 <td><?= e($wedding['branch_name']) ?></td>
-                <td><?= e($wedding['location'] ?: '-') ?></td>
-                <td><?= e($wedding['hotel'] ?: '-') ?></td>
-                <td><?= $wedding['estimated_amount'] === null ? '-' : 'Rs. ' . e(number_format((float) $wedding['estimated_amount'], 2)) ?></td>
-                <td><?= e($wedding['maid_boys']) ?></td>
-                <td><span class="status-pill"><?= e($wedding['status']) ?></span></td>
+                <td><?= e($wedding['dressing_location'] ?: '-') ?></td>
+                <td><?= e($wedding['wedding_hotel'] ?: '-') ?></td>
+                <td>Rs. <?= e(number_format((float) $wedding['total'], 2)) ?></td>
+                <td><?= e($wedding['bestmen_count']) ?></td>
+                <td><?= e($wedding['pageboys_count']) ?></td>
+                <td><span class="status-pill"><?= e($billStatus($wedding)) ?></span></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -183,3 +152,50 @@ $dateLink = static function (DateTimeImmutable $date): string {
     <?php endif; ?>
   </section>
 </section>
+
+<style>
+  .day-dialog { border: 0; border-radius: 12px; padding: 0; width: min(560px, calc(100vw - 32px)); max-height: 85vh; box-shadow: 0 20px 50px rgba(15, 23, 42, .3); }
+  .day-dialog::backdrop { background: rgba(15, 23, 42, .45); }
+  .day-dialog-inner { padding: 20px 24px 24px; }
+  .day-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .day-dialog-header h2 { margin: 0; font-size: 1.15rem; }
+  .day-dialog-close { border: 0; background: none; font-size: 1.8rem; line-height: 1; cursor: pointer; color: #64748b; }
+  .day-dialog-count { margin: 0 0 12px; color: #64748b; font-size: .9rem; }
+  .day-dialog-wedding { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+  .day-dialog-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .day-dialog-wedding dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0 0 12px; font-size: .92rem; }
+  .day-dialog-wedding dt { color: #64748b; }
+  .day-dialog-wedding dd { margin: 0; }
+</style>
+
+<script>
+(function () {
+  var dialog = document.getElementById('day-dialog');
+  if (!dialog || typeof dialog.showModal !== 'function') { return; } // old browser: links still navigate
+  var title = document.getElementById('day-dialog-title');
+  var body = document.getElementById('day-dialog-body');
+
+  document.querySelectorAll('.calendar-day[data-date]').forEach(function (cell) {
+    cell.addEventListener('click', function (event) {
+      event.preventDefault();
+      var tpl = document.getElementById('day-' + cell.dataset.date);
+      title.textContent = cell.dataset.label;
+      body.innerHTML = '';
+      if (tpl) {
+        body.appendChild(tpl.content.cloneNode(true));
+      } else {
+        var p = document.createElement('p');
+        p.className = 'empty-state';
+        p.textContent = 'No weddings scheduled for this date.';
+        body.appendChild(p);
+      }
+      dialog.showModal();
+    });
+  });
+
+  document.getElementById('day-dialog-close').addEventListener('click', function () { dialog.close(); });
+  dialog.addEventListener('click', function (event) {
+    if (event.target === dialog) { dialog.close(); } // click on the dimmed backdrop
+  });
+})();
+</script>

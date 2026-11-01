@@ -1,7 +1,7 @@
 <?php
 class AccessMiddleware
 {
-    /** $module: a module name from permissions.php, or '*' for any logged-in user */
+    
     public static function handle(string $module): void
     {
         if (!Auth::check()) {
@@ -9,7 +9,7 @@ class AccessMiddleware
             exit;
         }
 
-        // stop the browser back button showing protected pages after logout
+        
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Pragma: no-cache');
 
