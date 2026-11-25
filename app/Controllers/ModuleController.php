@@ -77,7 +77,6 @@ class ModuleController extends Controller
     }
 
     public function branches()  { $this->page('Branches'); }
-    public function customers() { $this->page('Customer Management'); }
 
     
     public function calendar(): void

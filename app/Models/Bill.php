@@ -206,7 +206,44 @@ class Bill
         }
         $st = $this->db()->prepare($sql);
         $st->execute($args);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = [];
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $rows[$row['phone1']] = $row;
+        }
+
+        $contactSql = 'SELECT name AS customer_name, email AS customer_email, address,
+                              phone AS phone1, \'\' AS phone2, 0 AS last_id
+                       FROM customers
+                       WHERE (name LIKE ? OR phone LIKE ?)';
+        $contactArgs = [$like, $like];
+        if ($scope !== null) {
+            $contactSql .= ' AND branch_id = ?';
+            $contactArgs[] = $scope;
+        }
+        $contactSql .= ' ORDER BY created_at DESC';
+        $contacts = $this->db()->prepare($contactSql);
+        $contacts->execute($contactArgs);
+        foreach ($contacts->fetchAll(PDO::FETCH_ASSOC) as $contact) {
+            $existing = $rows[$contact['phone1']] ?? [];
+            $rows[$contact['phone1']] = [
+                'customer_name' => $contact['customer_name'],
+                'customer_email' => $contact['customer_email'] !== ''
+                    ? $contact['customer_email']
+                    : ($existing['customer_email'] ?? ''),
+                'address' => $contact['address'] !== ''
+                    ? $contact['address']
+                    : ($existing['address'] ?? ''),
+                'phone1' => $contact['phone1'],
+                'phone2' => $existing['phone2'] ?? '',
+                'last_id' => $existing['last_id'] ?? 0,
+            ];
+        }
+
+        $rows = array_values($rows);
+        usort($rows, static function (array $a, array $b): int {
+            return (int) $b['last_id'] <=> (int) $a['last_id'];
+        });
+        return array_slice($rows, 0, 10);
     }
 
 

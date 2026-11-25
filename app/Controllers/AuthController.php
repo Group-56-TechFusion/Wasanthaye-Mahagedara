@@ -1,6 +1,8 @@
 <?php
 class AuthController extends Controller
 {
+    private const DEVICE_COOKIE = 'wm_trusted_device';
+
     public function showLogin(): void
     {
         if (Auth::check()) {
@@ -30,8 +32,48 @@ class AuthController extends Controller
             $this->redirect('/login');
         }
 
+        if ($user['role'] !== 'admin') {
+            $deviceToken = $this->deviceToken();
+            $device = new LoginDevice($db);
+            $status = $device->recordLoginAttempt(
+                (int) $user['id'],
+                hash('sha256', $deviceToken),
+                is_string($_SERVER['HTTP_USER_AGENT'] ?? null) ? $_SERVER['HTTP_USER_AGENT'] : ''
+            );
+
+            if ($status !== 'approved') {
+                $_SESSION['error'] = $status === 'pending'
+                    ? 'This device is waiting for administrator approval. Try signing in again after it has been approved.'
+                    : 'This device is not approved. Please contact an administrator.';
+                $this->redirect('/login');
+            }
+        }
+
         Auth::login($user);
         $this->redirect('/dashboard');
+    }
+
+    private function deviceToken(): string
+    {
+        $token = $_COOKIE[self::DEVICE_COOKIE] ?? null;
+        if (is_string($token) && preg_match('/\A[a-f0-9]{64}\z/', $token) === 1) {
+            return $token;
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $secure = !empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+        $cookieSet = setcookie(self::DEVICE_COOKIE, $token, [
+            'expires' => time() + 31536000,
+            'path' => '/',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        if (!$cookieSet) {
+            throw new RuntimeException('Unable to set the device approval cookie.');
+        }
+
+        return $token;
     }
 
     public function logout(): void

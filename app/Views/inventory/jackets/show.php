@@ -15,6 +15,7 @@
     <?php endforeach; ?>
 </div>
 
+<div class="table-scroll">
 <table class="table detail">
     <tr><th>Code</th><td><?= $e($jacket['code']) ?></td></tr>
     <tr><th>Category</th><td><?= $e($categories[$jacket['category']] ?? $jacket['category']) ?></td></tr>
@@ -27,3 +28,4 @@
     <?php endif; ?>
     <tr><th>Note</th><td><?= nl2br($e($jacket['note'] ?? '')) ?></td></tr>
 </table>
+</div>

@@ -8,8 +8,6 @@ $members = $d['members_form'] ?? [];
 $inst = $d['installments'] ?? [];
 $jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
-<link rel="stylesheet" href="/css/billing.css">
-
 <div class="bill-page">
   <div class="page-head">
     <h1><?= $editing ? 'Edit Bill #' . e($bill['bill_number']) : 'Add New Bill &ndash; Showroom' ?></h1>
