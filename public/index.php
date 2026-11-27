@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 define('BASE_PATH', dirname(__DIR__));
 
-session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
+$secureCookies = !empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => $secureCookies]);
 session_start();
 
 require BASE_PATH . '/app/Core/helpers.php';

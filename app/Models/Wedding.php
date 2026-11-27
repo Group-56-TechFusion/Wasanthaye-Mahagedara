@@ -26,7 +26,11 @@ class Wedding
 
     public static function branches(PDO $db): array
     {
-        return $db->query('SELECT id, name FROM branches ORDER BY name')->fetchAll();
+        return $db->query(
+            "SELECT id, name FROM branches
+             WHERE status = 'active'
+             ORDER BY name"
+        )->fetchAll();
     }
 
     public static function create(PDO $db, array $wedding): void

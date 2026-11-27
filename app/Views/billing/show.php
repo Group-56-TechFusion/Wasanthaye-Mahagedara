@@ -6,8 +6,6 @@ unset($_SESSION['success']);
 $ord = [1 => 'Advance Payment', 2 => '2nd Payment', 3 => '3rd Payment', 4 => '4th Payment'];
 $typeLabel = ['groom' => 'Groom', 'bestman' => 'Bestman', 'pageboy' => 'Page Boy'];
 ?>
-<link rel="stylesheet" href="/css/billing.css">
-
 <div class="bill-page">
   <div class="page-head no-print">
     <h1>Bill Details</h1>
